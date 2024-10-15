@@ -10,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         "type" => "login",
         "userid"=> $userid,
         "word"=> $word,
-        "token"=>"aaa"
+        "token"=>""
     );
     $headers = array(
-        "Authorization: aaa",
+        "Authorization: ",
         "Content-type: application/json"
     );
 
