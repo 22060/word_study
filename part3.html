@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Blackout App</title>
+<style>
+  .word {
+    display: inline-block;
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .blacked-out {
+    background-color: black;
+    color: black;
+  }
+</style>
+</head>
+<body>
+
+<div id="text-container"></div>
+<button onclick="saveState()">Save State</button>
+<button onclick="exportState()">Export State</button>
+<input type="file" id="file-input" accept=".json" onchange="importState(event)">
+
+<script>
+  const container = document.getElementById('text-container');
+
+  // Fetch text from server
+  fetch('/part3.txt')
+    .then(response => response.text())
+    .then(text => {
+      const words = text.split(' ');
+      const state = JSON.parse(localStorage.getItem('blackoutState')) || Array(words.length).fill(false);
+      
+      words.forEach((word, index) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = word;
+        span.dataset.index = index;
+
+        if (state[index]) {
+          span.classList.add('blacked-out');
+        }
+
+        span.addEventListener('click', () => {
+          span.classList.toggle('blacked-out');
+          state[index] = !state[index];
+          saveStateToLocalStorage();
+        });
+
+        container.appendChild(span);
+        if (index < words.length - 1) {
+          container.appendChild(document.createTextNode(' '));
+        }
+      });
+    });
+
+  function saveStateToLocalStorage() {
+    const words = container.querySelectorAll('.word');
+    const state = Array.from(words).map(word => word.classList.contains('blacked-out'));
+    localStorage.setItem('blackoutState', JSON.stringify(state));
+  }
+
+  function saveState() {
+    saveStateToLocalStorage();
+    alert('State saved locally!');
+  }
+
+  function exportState() {
+    const state = JSON.parse(localStorage.getItem('blackoutState'));
+    const dataStr = JSON.stringify(state);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = 'blackoutState.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }
+
+  function importState(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const importedState = JSON.parse(e.target.result);
+      localStorage.setItem('blackoutState', JSON.stringify(importedState));
+      location.reload();
+    };
+    reader.readAsText(file);
+  }
+</script>
+
+</body>
+</html>
